@@ -8,6 +8,7 @@ from app.ui.display import load_display_window
 from app.ui.file_dialog import load_file_dialog, load_folder_dialog
 from app.ui.font import get_font
 from app.ui.menu import load_menu
+from app.ui.window import load_window
 
 
 def delete_interface(state):
@@ -26,12 +27,6 @@ def draw_interface(state):
     load_folder_dialog(state)
     load_display_window(state)
 
-    # TODO: plot
-
-    with dpg.window(tag="Primary Window") as item_id:
-        state["items"].append(item_id)
-        text_tag = dpg.add_text("hi", wrap=TEXT_WRAP * scale, pos=resize_tuple(TEXT_POS, scale))
-
-        dpg.bind_font(default_font)
+    window = load_window(state, default_font)
 
     dpg.set_primary_window("Primary Window", True)
