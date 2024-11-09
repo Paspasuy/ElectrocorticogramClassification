@@ -43,16 +43,27 @@ def evaluate(model, val_loader, criterion, device: str):
             running_loss += loss.item() * features.size(0)
     return running_loss / len(val_loader.dataset)
 
-def get_data_loaders(X_train, y_train, X_val, y_val, batch_size: int, split: float = 0.8):
-    # Создаем тренировочный и валидационный наборы данных
-    train_dataset = TensorDataset(
-        torch.tensor(X_train), 
-        torch.tensor(y_train)
-    )
-    val_dataset = TensorDataset(
-        torch.tensor(X_val),
-        torch.tensor(y_val)
-    )
+
+class FeatureDataset(torch.utils.data.Dataset):
+    def __init__(self, X, y, extract_feachures=None):
+        self.X = X
+        self.y = y
+        self.extract_feachures = extract_feachures
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        segment = self.X[idx]
+        # Извлекаем фичи
+        features = self.extract_feachures(segment) if self.extract_feachures is not None else segment
+        return torch.tensor(features, dtype=torch.float32), torch.tensor(self.y[None, idx], dtype=torch.float32)
+
+def get_data_loaders(X_train, y_train, X_val, y_val, batch_size: int, extract_feachures=None):
+    # Создаем датасеты с извлечением фич
+    train_dataset = FeatureDataset(X_train, y_train, extract_feachures)
+    val_dataset = FeatureDataset(X_val, y_val, extract_feachures)
+
     # Создаем загрузчики данных
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)

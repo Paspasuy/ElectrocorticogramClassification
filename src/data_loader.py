@@ -17,7 +17,7 @@ class ECoGDataLoader:
         mode (str): Режим работы ('train', 'val', 'val_full' или 'test')
     """
 
-    def __init__(self, path: str, segment_length: int, step: int, label_type: str, mode: str = 'train'):
+    def __init__(self, path: str, segment_length: int, step: int, label_type: str, mode: str = 'train', additional_data_dir: str = None):
         """Инициализация загрузчика данных.
 
         Args:
@@ -32,6 +32,7 @@ class ECoGDataLoader:
         self.step = step
         self.label_type = label_type
         self.mode = mode
+        self.additional_data_dir = additional_data_dir
 
     def load_files(self) -> List[str]:
         """Загружает список файлов из директории для трейна и валидации или один файл для теста.
@@ -50,8 +51,13 @@ class ECoGDataLoader:
             return train_files
         else:
             return val_file
+    
+    def load_additional_data(self) -> List[str]:
+        if self.additional_data_dir is None:
+            return []
+        return [os.path.join(self.additional_data_dir, f) for f in os.listdir(self.additional_data_dir)]
 
-    def extract_segments(self, data: np.ndarray, annotations: Optional[dict] = None) -> List[Tuple[np.ndarray, float]]:
+    def extract_segments(self, data: np.ndarray, annotations: Optional[dict] = None, only_positive: bool = False) -> List[Tuple[np.ndarray, float]]:
         """Извлекает сегменты данных и их метки из сигнала.
 
         Args:
@@ -90,6 +96,9 @@ class ECoGDataLoader:
                 segments.append((segment, label))
                 
         if self.mode != 'val_full':
+            if only_positive:
+                return positive_segments
+            
             num_negative = min(len(negative_starts), 2 * len(positive_segments))
             np.random.seed(42)
             selected_negative_starts = np.random.choice(negative_starts, size=num_negative, replace=False)
@@ -169,6 +178,15 @@ class ECoGDataLoader:
                 data, annotations = self.normalize_data_and_annotations(data, annotations)
                 segments = self.extract_segments(data, annotations)
             all_segments.extend(segments)
+        
+        if self.additional_data_dir is not None:
+            additional_files = self.load_additional_data()
+            for file_path in additional_files:
+                raw = mne.io.read_raw_edf(file_path, preload=True)
+                data, annotations = get_data_and_annotations(raw)
+                data, annotations = self.normalize_data_and_annotations(data, annotations)
+                segments = self.extract_segments(data, annotations, only_positive=True)
+                all_segments.extend(segments)
             
         X = np.array([seg[0] for seg in all_segments])
         y = np.array([seg[1] for seg in all_segments])
