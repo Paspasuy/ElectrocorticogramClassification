@@ -1,8 +1,10 @@
 import os
 import numpy as np
 from src.data_loader import ECoGDataLoader
-from src.feature_extractor import FeatureExtractor
-from src.model import SimpleNN
+from src.feature_extractor import FeatureExtractor, DummyFeatureExtractor, WaveletFeatureExtractor
+from src.models.simple_model import SimpleNN
+from src.models.simple_cnn_model import SimpleCNN
+from src.models.wavelet_cnn_model import WaveletCNN
 from src.train import train_model, get_data_loaders
 import torch
 from src.visualize import plot_segment
@@ -19,18 +21,23 @@ args = parser.parse_args()
 
 # Параметры
 data_dir = 'data/ECoG_fully_marked_(4+2 files, 6 h each)'
-segment_length = 400
-step = 200
-batch_size = 32
+additional_data_dir = 'data/ECoG_golden_standard_[15 files, 6 h each]'
+use_additional_data = True
+segment_length = 400 * 5
+step = 200 * 5
+partitions = 10
+batch_size = 128
 num_epochs = 20
 hidden_dim = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-save_path = 'model.pth'
-label_type = 'swd'
+save_path = 'models/test.pth'
+label_type = 'is'
+slow_feachure_extractor = True
 
 # Загрузка данных
 if not args.not_train:
-    loader_train = ECoGDataLoader(data_dir, segment_length, step, label_type, mode='train')
+    loader_train = ECoGDataLoader(data_dir, segment_length, step, label_type, mode='train',
+                                  additional_data_dir=additional_data_dir if use_additional_data else None)
     loader_val = ECoGDataLoader(data_dir, segment_length, step, label_type, mode='val')
 if not args.not_validate:
     loader_val_full = ECoGDataLoader(data_dir, segment_length, step, label_type, mode='val_full')
@@ -44,28 +51,32 @@ if not args.not_validate:
     print(f'Данные full загружены: {X_val_full.shape}, {y_val_full.shape}')
 
 # Извлечение фич
-extractor = FeatureExtractor()
-if not args.not_train:
-    X_train_features = extractor.transform(X_train, partitions=segment_length // step * 2)
-    X_val_features = extractor.transform(X_val, partitions=segment_length // step * 2)
-    y_train = np.expand_dims(y_train, axis=1)
-    y_val = np.expand_dims(y_val, axis=1)
-    print(f'Фичи извлечены: X_train: {X_train_features.shape}, y_train: {y_train.shape}, X_val: {X_val_features.shape}, y_val: {y_val.shape}')
-if not args.not_validate:
-    X_val_full_features = extractor.transform(X_val_full, partitions=segment_length // step * 2)
-    y_val_full = np.expand_dims(y_val_full, axis=1)
-    print(f'Фичи извлечены: X_val_full: {X_val_full_features.shape}, y_val_full: {y_val_full.shape}')
+if not slow_feachure_extractor:
+    extractor = FeatureExtractor()
+    if not args.not_train:
+        X_train_features = extractor.transform(X_train, partitions=partitions)
+        X_val_features = extractor.transform(X_val, partitions=partitions)
+        y_train = np.expand_dims(y_train, axis=1)
+        y_val = np.expand_dims(y_val, axis=1)
+        print(f'Фичи извлечены: X_train: {X_train_features.shape}, y_train: {y_train.shape}, X_val: {X_val_features.shape}, y_val: {y_val.shape}')
+    if not args.not_validate:
+        X_val_full_features = extractor.transform(X_val_full, partitions=segment_length // step * 2)
+        y_val_full = np.expand_dims(y_val_full, axis=1)
+        print(f'Фичи извлечены: X_val_full: {X_val_full_features.shape}, y_val_full: {y_val_full.shape}')
+extractor_function = lambda x: FeatureExtractor().extract(x, partitions)
 
 if not args.not_train:
     # Разделение на тренир и валидацию
-    train_loader, val_loader = get_data_loaders(X_train_features, y_train, X_val_features, y_val, batch_size)
+    if not slow_feachure_extractor:
+        train_loader, val_loader = get_data_loaders(X_train_features, y_train, X_val_features, y_val, batch_size)
+    else:
+        train_loader, val_loader = get_data_loaders(X_train, y_train, X_val, y_val, batch_size, extractor_function)
 
 # Инициализация модели
-shape = X_train_features.shape[1] if not args.not_train else X_val_full_features.shape[1]
+shape = extractor_function(X_train[0]).shape[0] if not args.not_train else extractor_function(X_val_full[0]).shape[0]
 input_dim = shape
 output_dim = 1
-model = SimpleNN(input_dim, hidden_dim, output_dim)
-
+model = SimpleCNN(input_dim=input_dim, output_dim=output_dim)
 
 def validate():
     # Загрузка лучшей модели
@@ -102,19 +113,19 @@ def validate():
     print(report)
 
     # Визуализация примера
-    for idx in [-1, -2, -3, 100]:
-        assert one_labels[idx] == y_val[positive_indices[idx]], f'{one_labels[idx]} != {y_val[positive_indices[idx]]}'
-        plot_segment(np.linspace(0, segment_length, segment_length),
-                    X_val[positive_indices[idx]],
-                    one_labels[idx],
-                    one_preds[idx],
-                    'swd')
+    # for idx in [-1, -2, -3, 100]:
+    #     assert one_labels[idx] == y_val[positive_indices[idx]], f'{one_labels[idx]} != {y_val[positive_indices[idx]]}'
+    #     plot_segment(np.linspace(0, segment_length, segment_length),
+    #                 X_val[positive_indices[idx]],
+    #                 one_labels[idx],
+    #                 one_preds[idx],
+    #                 'swd')
 
 
 def train():
     # Критерий и оптимизатор
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     # Обучение модели
     train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, device, save_path)
