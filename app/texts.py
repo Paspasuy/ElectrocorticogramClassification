@@ -6,3 +6,6 @@ VIEW = ("Вид", "View")
 SCALE = ("Масштаб", "Scale")
 LANG = ("Язык", "Language")
 
+BEGIN = ("Начало", "Begin")
+END = ("Конец", "End")
+TYPE = ("Тип", "Type")
