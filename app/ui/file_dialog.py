@@ -3,44 +3,26 @@ import sys
 
 from app.constants import *
 from app import texts
+from app.markup import ECGMarkup
 from app.ui.display import display_markup
 from app.ui.font import get_font
 from app.ui.menu import load_menu
 import numpy as np
 
 
-class DummyMarkup:
-    def __init__(self, filename):
-        self.markup = {
-            400 * 10: "sw1",
-            400 * 20: "sw2",
-            400 * 30: "ds1",
-            400 * 40: "ds2",
-            400 * 50: "is1",
-            400 * 60: "is2",
-        }
-        self.filename = filename
-
-
-def get_markup(filename):
-    print(f"Getting markup for {filename}")
-    return DummyMarkup(filename=filename)
-
-
 def get_file_picker_callback(state):
     def file_picker_callback(sender, app_data, user_data):
         filename = app_data["file_path_name"]
-        print(app_data)
-        print(filename)
         markup = []
         if filename.endswith('.edf'):
-            markup.append(get_markup(filename))
+            markup.append(ECGMarkup(filename))
         else:
             for name in os.listdir(app_data["file_path_name"]):
                 if name.endswith('.edf'):
-                    print(f"FN: {filename}")
-                    print(f"N: {name}")
-                    markup.append(get_markup(os.path.join(filename, name)))
+                    markup.append(ECGMarkup(os.path.join(filename, name)))
+
+        for mp in markup:
+            mp.load_data_and_markup()
 
         state["markup"] = markup
 

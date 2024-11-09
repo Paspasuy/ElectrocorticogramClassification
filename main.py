@@ -21,6 +21,7 @@ if __name__ == "__main__":
         "ui_scale_text": "100%",
         "locale": "ru",
         "items": [],
+        "annotation": [],
     }
 
     common.draw_interface(state)
