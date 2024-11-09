@@ -45,6 +45,9 @@ def load_menu(state, **reload_ui_f):
             dpg.add_menu_item(
                 label=tr(texts.OPEN, locale), callback=lambda: dpg.show_item(FILE_DIALOG_TAG)
             )
+            dpg.add_menu_item(
+                label=tr(texts.OPEN_FOLDER, locale), callback=lambda: dpg.show_item(FOLDER_DIALOG_TAG)
+            )
             dpg.add_menu_item(label=tr(texts.EXIT, locale), callback=lambda: dpg.stop_dearpygui())
         dpg.add_menu_item(
             label="History", callback=lambda: dpg.show_item(PREVIEW_WINDOW_TAG)

@@ -35,10 +35,8 @@ def get_font(state):
     scale = state["ui_scale"]
     try:
         with dpg.font_registry():
-            if 'linux' in sys.platform:
-                font_path = FONT_PATH
-            else:
-                font_path = get_windows_font_path()
+            # if 'linux' in sys.platform:
+            font_path = FONT_PATH
             with dpg.font(font_path, FONT_SIZE * 2, default_font=True) as default_font:
                 dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic)
 

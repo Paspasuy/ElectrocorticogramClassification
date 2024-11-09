@@ -12,10 +12,12 @@ from app.ui import common
 if __name__ == "__main__":
     dpg.create_context()
     dpg.setup_dearpygui()
-    dpg.create_viewport(title=APP_TITLE, width=VIEWPORT_WIDTH, height=VIEWPORT_HEIGHT)
+
+    scale = 2
+    dpg.create_viewport(title=APP_TITLE, width=VIEWPORT_WIDTH * scale, height=VIEWPORT_HEIGHT * scale)
 
     state = {
-        "ui_scale": 1,
+        "ui_scale": scale,
         "ui_scale_text": "100%",
         "locale": "ru",
         "items": [],
