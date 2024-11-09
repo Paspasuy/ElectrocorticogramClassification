@@ -10,9 +10,9 @@ class FeatureExtractor:
         part_size = segment_len // partitions
         
         for channel in segment:
-            for i in range(4):
+            for i in range(partitions):
                 start = i * part_size
-                end = (i + 1) * part_size if i < 3 else segment_len
+                end = (i + 1) * part_size
                 part = channel[start:end]
                 
                 mean = np.mean(part)
