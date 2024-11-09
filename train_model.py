@@ -2,7 +2,7 @@ import os
 import numpy as np
 from src.data_loader import ECoGDataLoader
 from src.feature_extractor import FeatureExtractor
-from src.model import SimpleNN
+from src.models.simple_model import SimpleNN
 from src.train import train_model, get_data_loaders
 import torch
 from src.visualize import plot_segment
@@ -19,14 +19,15 @@ args = parser.parse_args()
 
 # Параметры
 data_dir = 'data/ECoG_fully_marked_(4+2 files, 6 h each)'
-segment_length = 400
-step = 200
+segment_length = 400 * 10
+step = 200 * 10
+partitions = 20
 batch_size = 32
-num_epochs = 20
+num_epochs = 40
 hidden_dim = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-save_path = 'model.pth'
-label_type = 'swd'
+save_path = 'models/simple_model_ds.pth'
+label_type = 'ds'
 
 # Загрузка данных
 if not args.not_train:
@@ -46,8 +47,8 @@ if not args.not_validate:
 # Извлечение фич
 extractor = FeatureExtractor()
 if not args.not_train:
-    X_train_features = extractor.transform(X_train, partitions=segment_length // step * 2)
-    X_val_features = extractor.transform(X_val, partitions=segment_length // step * 2)
+    X_train_features = extractor.transform(X_train, partitions=partitions)
+    X_val_features = extractor.transform(X_val, partitions=partitions)
     y_train = np.expand_dims(y_train, axis=1)
     y_val = np.expand_dims(y_val, axis=1)
     print(f'Фичи извлечены: X_train: {X_train_features.shape}, y_train: {y_train.shape}, X_val: {X_val_features.shape}, y_val: {y_val.shape}')
@@ -114,7 +115,7 @@ def validate():
 def train():
     # Критерий и оптимизатор
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     # Обучение модели
     train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, device, save_path)
