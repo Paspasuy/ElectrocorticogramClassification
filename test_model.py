@@ -67,6 +67,21 @@ class TestResult:
         raw.export(output_path, overwrite=True)
         
         return output_path
+    
+
+class TestDataset(torch.utils.data.Dataset):
+    def __init__(self, X, extract_feachures):
+        self.X = X
+        self.extract_feachures = extract_feachures
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        segment = self.X[idx]
+        # Извлекаем фичи
+        features = self.extract_feachures(segment)
+        return torch.tensor(features, dtype=torch.float32)
 
 
 def test_model(file_list: list,
@@ -96,16 +111,13 @@ def test_model(file_list: list,
             
             segments, _ = loader.load_data()
             
-            # Извлечение признаков
-            extractor = FeatureExtractor()
-            segments_features = extractor.transform(segments, partitions=config[label_type]['partitions'])
-            
-            # Преобразование в тензоры
-            segments_tensor = torch.tensor(segments_features).to(device).float()
-            test_loader = DataLoader(segments_tensor, batch_size=1, shuffle=False)
+            # Преобразование в даталоадер
+            extractor_function = lambda x: FeatureExtractor().extract(x, config[label_type]['partitions'])
+            segments_dataset = TestDataset(segments, extractor_function)
+            test_loader = DataLoader(segments_dataset, batch_size=1, shuffle=False)
             
             # Загрузка модели
-            model = SimpleNN(input_dim=segments_features.shape[1], hidden_dim=64, output_dim=1)
+            model = SimpleNN(input_dim=segments_dataset[0].shape[0], hidden_dim=64, output_dim=1)
             model.load_state_dict(torch.load(config[label_type]['model_path'], map_location=device))
             model.to(device)
             model.eval()
