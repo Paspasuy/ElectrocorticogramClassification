@@ -1,8 +1,10 @@
 import os
 import numpy as np
 from src.data_loader import ECoGDataLoader
-from src.feature_extractor import FeatureExtractor
+from src.feature_extractor import FeatureExtractor, DummyFeatureExtractor, WaveletFeatureExtractor
 from src.models.simple_model import SimpleNN
+from src.models.simple_cnn_model import SimpleCNN
+from src.models.wavelet_cnn_model import WaveletCNN
 from src.train import train_model, get_data_loaders
 import torch
 from src.visualize import plot_segment
@@ -74,8 +76,7 @@ if not args.not_train:
 shape = extractor_function(X_train[0]).shape[0] if not args.not_train else extractor_function(X_val_full[0]).shape[0]
 input_dim = shape
 output_dim = 1
-model = SimpleNN(input_dim, hidden_dim, output_dim)
-
+model = SimpleCNN(input_dim=input_dim, output_dim=output_dim)
 
 def validate():
     # Загрузка лучшей модели
