@@ -26,3 +26,14 @@ class FeatureExtractor:
         
     def transform(self, X: np.ndarray, partitions: int) -> np.ndarray:
         return np.array([self.extract(seg, partitions) for seg in X])
+    
+    
+class DummyFeatureExtractor:
+    def __init__(self):
+        pass
+        
+    def extract(self, segment: np.ndarray, partitions: int) -> np.ndarray:
+        return segment
+        
+    def transform(self, X: np.ndarray, partitions: int) -> np.ndarray:
+        return self.extract(X, partitions)
