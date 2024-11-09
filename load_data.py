@@ -1,7 +1,8 @@
 import mne
 import numpy as np
+from typing import Tuple
 
-def get_annotations(raw: mne.io.Raw) -> dict:
+def get_data_and_annotations(raw: mne.io.Raw) -> Tuple[np.ndarray, dict]:
     """Get annotations from raw data.
 
     Args:
@@ -77,10 +78,10 @@ def get_annotations(raw: mne.io.Raw) -> dict:
                         
             event_dict[event_type].append((int(onset * raw.info['sfreq']), int(end * raw.info['sfreq'])))
             
-    return event_dict
+    return raw.get_data(), event_dict
 
 
 if __name__ == '__main__':
     raw = mne.io.read_raw_edf('data/ECoG_fully_marked_(4+2 files, 6 h each)/Ati4x3_9m_Xyl01(Pharm!)_6h_fully_marked.edf', preload=True)
-    annotations = get_annotations(raw)
+    data, annotations = get_data_and_annotations(raw)
     print(annotations)

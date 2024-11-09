@@ -5,48 +5,69 @@ from src.feature_extractor import FeatureExtractor
 from src.model import SimpleNN
 from src.train import train_model, get_data_loaders
 import torch
-from sklearn.metrics import accuracy_score, precision_score, recall_score
 from src.visualize import plot_segment
+from sklearn.metrics import classification_report
+import argparse
+    
+
+parser = argparse.ArgumentParser(description='Обучение и тестирование модели')
+parser.add_argument('--not-train', action='store_true', help='Не запускать обучение модели', default=False)
+parser.add_argument('--not-validate', action='store_true', help='Не запускать валидацию модели', default=False)
+
+args = parser.parse_args()
 
 
-def main():
-    # Параметры
-    data_dir = 'data/ECoG_fully_marked_(4+2 files, 6 h each)'
-    segment_length = 400 * 3  # пример длины сегмента
-    step = 400  # пример шага
-    batch_size = 32
-    num_epochs = 20
-    hidden_dim = 64
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    save_path = 'model.pth'
-    label_type = 'swd'
+# Параметры
+data_dir = 'data/ECoG_fully_marked_(4+2 files, 6 h each)'
+segment_length = 400
+step = 200
+batch_size = 32
+num_epochs = 20
+hidden_dim = 64
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+save_path = 'model.pth'
+label_type = 'swd'
 
-    # Загрузка данных
-    loader = ECoGDataLoader(data_dir, segment_length, step, label_type)
-    X, y = loader.load_data()
-    print(f'Данные загружены: {X.shape}, {y.shape}')
+# Загрузка данных
+if not args.not_train:
+    loader_train = ECoGDataLoader(data_dir, segment_length, step, label_type, mode='train')
+    loader_val = ECoGDataLoader(data_dir, segment_length, step, label_type, mode='val')
+if not args.not_validate:
+    loader_val_full = ECoGDataLoader(data_dir, segment_length, step, label_type, mode='val_full')
 
-    # Извлечение фич
-    extractor = FeatureExtractor()
-    X_features = extractor.transform(X)
-    y = np.expand_dims(y, axis=1)
-    print(f'Фичи извлечены: X: {X_features.shape}, y: {y.shape}')
+if not args.not_train:
+    X_train, y_train = loader_train.load_data()
+    X_val, y_val = loader_val.load_data()
+    print(f'Данные загружены: {X_train.shape}, {y_train.shape}, {X_val.shape}, {y_val.shape}')
+if not args.not_validate:
+    X_val_full, y_val_full = loader_val_full.load_data()
+    print(f'Данные full загружены: {X_val_full.shape}, {y_val_full.shape}')
 
+# Извлечение фич
+extractor = FeatureExtractor()
+if not args.not_train:
+    X_train_features = extractor.transform(X_train, partitions=segment_length // step * 2)
+    X_val_features = extractor.transform(X_val, partitions=segment_length // step * 2)
+    y_train = np.expand_dims(y_train, axis=1)
+    y_val = np.expand_dims(y_val, axis=1)
+    print(f'Фичи извлечены: X_train: {X_train_features.shape}, y_train: {y_train.shape}, X_val: {X_val_features.shape}, y_val: {y_val.shape}')
+if not args.not_validate:
+    X_val_full_features = extractor.transform(X_val_full, partitions=segment_length // step * 2)
+    y_val_full = np.expand_dims(y_val_full, axis=1)
+    print(f'Фичи извлечены: X_val_full: {X_val_full_features.shape}, y_val_full: {y_val_full.shape}')
+
+if not args.not_train:
     # Разделение на тренир и валидацию
-    train_loader, val_loader = get_data_loaders(X_features, y, batch_size)
+    train_loader, val_loader = get_data_loaders(X_train_features, y_train, X_val_features, y_val, batch_size)
 
-    # Инициализация модели
-    input_dim = X_features.shape[1]
-    output_dim = 1
-    model = SimpleNN(input_dim, hidden_dim, output_dim)
+# Инициализация модели
+shape = X_train_features.shape[1] if not args.not_train else X_val_full_features.shape[1]
+input_dim = shape
+output_dim = 1
+model = SimpleNN(input_dim, hidden_dim, output_dim)
 
-    # Критерий и оптимизатор
-    criterion = torch.nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-    # Обучение модели
-    train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, device, save_path)
-
+def validate():
     # Загрузка лучшей модели
     model.load_state_dict(torch.load(save_path))
     model.to(device)
@@ -55,32 +76,57 @@ def main():
     model.eval()
     all_preds = []
     all_labels = []
+    all_outputs = []
     with torch.no_grad():
         for features, labels in val_loader:
             features = features.to(device).float()
-            labels = labels.to(device).float()
+            labels = labels.float()
             outputs = model(features)
             preds = (outputs > 0.5).int().cpu().numpy()
+            all_outputs.append(outputs.cpu().numpy())
             all_preds.append(preds)
-            all_labels.append(labels.cpu().numpy())
+            all_labels.append(labels.numpy())
 
     all_preds = np.vstack(all_preds)
     all_labels = np.vstack(all_labels)
+    all_outputs = np.vstack(all_outputs)
+    
+    # Получаем индексы, где метки равны 1
+    positive_indices = np.where((all_labels == 1) | (all_labels == 0))[0]
+    one_preds = all_preds[positive_indices]
+    one_labels = all_labels[positive_indices]
 
     # Метрики
-    acc = accuracy_score(all_labels, all_preds)
-    prec = precision_score(all_labels, all_preds)
-    rec = recall_score(all_labels, all_preds)
-    print(f'{label_type.upper()} - accuracy: {acc:.2f}, precision: {prec:.2f}, recall: {rec:.2f}')
+    report = classification_report(one_labels, one_preds)
+    print(f'\nРезультаты классификации для {label_type.upper()}:')
+    print(report)
 
     # Визуализация примера
-    window_size = 100
-    # plot_segment(np.linspace(0, segment_length, segment_length),
-    #             X[0],
-    #             np.var(X[0, :window_size]),
-    #             y[0],
-    #             'swd')
+    for idx in [-1, -2, -3, 100]:
+        assert one_labels[idx] == y_val[positive_indices[idx]], f'{one_labels[idx]} != {y_val[positive_indices[idx]]}'
+        plot_segment(np.linspace(0, segment_length, segment_length),
+                    X_val[positive_indices[idx]],
+                    one_labels[idx],
+                    one_preds[idx],
+                    'swd')
+
+
+def train():
+    # Критерий и оптимизатор
+    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+
+    # Обучение модели
+    train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, device, save_path)
+    validate()
+
+
+def validate_full():
+    pass
 
 
 if __name__ == '__main__':
-    main()
+    if not args.not_train:
+        train()
+    elif not args.not_validate:
+        validate_full()

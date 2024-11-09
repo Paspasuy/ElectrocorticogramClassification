@@ -43,25 +43,16 @@ def evaluate(model, val_loader, criterion, device: str):
             running_loss += loss.item() * features.size(0)
     return running_loss / len(val_loader.dataset)
 
-def get_data_loaders(X, y, batch_size: int, split: float = 0.8):
-    # Создаем случайные индексы для разделения данных
-    indices = torch.randperm(len(X))
-    train_size = int(split * len(X))
-    
-    # Разделяем индексы на тренировочные и валидационные
-    train_indices = indices[:train_size]
-    val_indices = indices[train_size:]
-    
+def get_data_loaders(X_train, y_train, X_val, y_val, batch_size: int, split: float = 0.8):
     # Создаем тренировочный и валидационный наборы данных
     train_dataset = TensorDataset(
-        torch.tensor(X[train_indices]), 
-        torch.tensor(y[train_indices])
+        torch.tensor(X_train), 
+        torch.tensor(y_train)
     )
     val_dataset = TensorDataset(
-        torch.tensor(X[val_indices]),
-        torch.tensor(y[val_indices])
+        torch.tensor(X_val),
+        torch.tensor(y_val)
     )
-    
     # Создаем загрузчики данных
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
