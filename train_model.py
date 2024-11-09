@@ -1,8 +1,10 @@
 import os
 import numpy as np
 from src.data_loader import ECoGDataLoader
-from src.feature_extractor import FeatureExtractor
+from src.feature_extractor import FeatureExtractor, DummyFeatureExtractor, WaveletFeatureExtractor
 from src.models.simple_model import SimpleNN
+from src.models.simple_cnn_model import SimpleCNN
+from src.models.wavelet_cnn_model import WaveletCNN
 from src.train import train_model, get_data_loaders
 import torch
 from src.visualize import plot_segment
@@ -45,7 +47,7 @@ if not args.not_validate:
     print(f'Данные full загружены: {X_val_full.shape}, {y_val_full.shape}')
 
 # Извлечение фич
-extractor = FeatureExtractor()
+extractor = DummyFeatureExtractor()
 if not args.not_train:
     X_train_features = extractor.transform(X_train, partitions=partitions)
     X_val_features = extractor.transform(X_val, partitions=partitions)
@@ -65,8 +67,7 @@ if not args.not_train:
 shape = X_train_features.shape[1] if not args.not_train else X_val_full_features.shape[1]
 input_dim = shape
 output_dim = 1
-model = SimpleNN(input_dim, hidden_dim, output_dim)
-
+model = SimpleCNN(input_dim=input_dim, output_dim=output_dim)
 
 def validate():
     # Загрузка лучшей модели
