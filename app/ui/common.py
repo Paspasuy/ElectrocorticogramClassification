@@ -18,8 +18,6 @@ def delete_interface(state):
 
 
 def draw_interface(state):
-    scale = state['ui_scale']
-
     default_font = get_font(state)
 
     load_menu(state, delete_interface=delete_interface, draw_interface=draw_interface)
@@ -27,6 +25,6 @@ def draw_interface(state):
     load_folder_dialog(state)
     load_display_window(state)
 
-    window = load_window(state, default_font)
+    load_window(state, default_font)
 
     dpg.set_primary_window("Primary Window", True)

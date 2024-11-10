@@ -1,5 +1,7 @@
 import os
 
+from app import texts
+
 APP_TITLE = "Классификатор ЭКоГ"
 
 items = []
@@ -46,12 +48,15 @@ SEGMENT_TABLE_TAG = "SEGMENT_TABLE_TAG"
 STATUS_POS = (30, VIEWPORT_HEIGHT - 30)
 STATUS_TAG = "STATUS_TAG"
 
+OUTPUT_DIR = "OUTPUT_DIR"
+COLUMNS = [texts.BEGIN[1], texts.END[1], texts.TYPE[1]]
+
 TEXT_POS = (10, 30)
 TEXT_WRAP = 400
 FILENAME_TAG = "FILENAME_TAG"
 
 PREVIEW_WINDOW_TAG = "preview_window_tag"
-OUT_FORMATS = ["EDF", "EDF in-place", "CSV"]
+OUT_FORMATS = ["EDF", "EDF in-place (Внимание! Эта опция перезапишет исходный файл!)", "CSV"]
 
 FONT_PATH = "./app/font/OpenSans-Regular.ttf"
 # FONT_PATH = "/usr/share/fonts/TTF/OpenSans-Regular.ttf"

@@ -12,3 +12,6 @@ TYPE = ("Тип", "Type")
 GO = ("Начать", "Go")
 READY = ("Готов!", "Ready!")
 PROCESSING = ("Размечаем %s ...", "Processing %s ...")
+
+ENTER_OUTPUT = ("Директория результата", "Output directory")
+NOT_CHOSEN = ("Файл не выбран!", "File not chosen!")

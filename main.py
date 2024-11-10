@@ -22,6 +22,7 @@ if __name__ == "__main__":
         "locale": "ru",
         "items": [],
         "annotation": [],
+        "format": OUT_FORMATS[0]
     }
 
     common.draw_interface(state)
