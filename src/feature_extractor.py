@@ -36,7 +36,7 @@ class FeatureExtractor:
                 features.extend([mean, var, crossings_norm, amplitude])
                 
         # Global features
-        features.extend([np.var(segment), np.mean(segment), np.max(segment) - np.min(segment)])
+        # features.extend([np.var(segment), np.mean(segment), np.max(segment) - np.min(segment)])
         
         # Spectrogram features
         f, t, Sxx = spectrogram(segment, fs=400)
@@ -44,7 +44,7 @@ class FeatureExtractor:
             band_idx = (f >= low) & (f < high)
             band_power = Sxx[:, band_idx, :]
             
-            features.extend([np.max(band_power), np.mean(np.abs(band_power)), np.var(band_power)])
+            features.extend([np.max(band_power)])
         
         return np.array(features)
         

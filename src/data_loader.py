@@ -136,11 +136,11 @@ class ECoGDataLoader:
         Returns:
             Tuple[np.ndarray, Optional[dict]]: Нормализованные данные и аннотации
         """
-        for i in range(data.shape[0]):
-            channel = data[i, :]
-            channel_min = np.min(channel)
-            channel_mean = np.mean(channel)
-            data[i, :] = (channel - channel_min) / (2 * channel_mean)
+        # for i in range(data.shape[0]):
+        #     channel = data[i, :]
+        #     channel_min = np.min(channel)
+        #     channel_mean = np.mean(channel - channel_min)
+        #     data[i, :] = (channel - channel_min) / (2 * channel_mean)
         
         if self.mode == 'test' or annotations is None:
             return data, None
