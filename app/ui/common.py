@@ -8,6 +8,7 @@ from app.ui.display import load_display_window
 from app.ui.file_dialog import load_file_dialog, load_folder_dialog
 from app.ui.font import get_font
 from app.ui.menu import load_menu
+from app.ui.stats import load_stats
 from app.ui.window import load_window
 
 
@@ -24,6 +25,7 @@ def draw_interface(state):
     load_file_dialog(state)
     load_folder_dialog(state)
     load_display_window(state)
+    load_stats(state)
 
     load_window(state, default_font)
 

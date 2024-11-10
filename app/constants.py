@@ -56,7 +56,17 @@ TEXT_WRAP = 400
 FILENAME_TAG = "FILENAME_TAG"
 
 PREVIEW_WINDOW_TAG = "preview_window_tag"
+
+STATS_WINDOW_TAG = "STATS_WINDOW"
+PIE_RADIUS = 100
+STATS_COUNT_TAG = "STATS_COUNT"
+STATS_AVG_TAG = "STATS_AVG"
+STATS_TAG = "STATS_TAG"
+DISPLAY_PLOT_SIDE = 200
+
 OUT_FORMATS = ["EDF", "EDF in-place (Внимание! Эта опция перезапишет исходный файл!)", "CSV"]
+
+TYPES = ['is', 'ds', 'swd']
 
 FONT_PATH = "./app/font/OpenSans-Regular.ttf"
 # FONT_PATH = "/usr/share/fonts/TTF/OpenSans-Regular.ttf"

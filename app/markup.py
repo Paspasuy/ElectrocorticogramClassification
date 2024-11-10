@@ -3,14 +3,14 @@ import csv
 import mne
 import numpy as np
 
-from app.constants import COLUMNS, OUT_FORMATS
+from app.constants import COLUMNS, OUT_FORMATS, TYPES
 from load_data import get_data_and_annotations
 from test_model import TestResult
 
 
 def change_markup_format(markup):
     result = []
-    for tp in ['is', 'ds', 'swd']:
+    for tp in TYPES:
         result += [((pair[0], tp+'1'), (pair[1], tp+'2')) for pair in markup[tp]]
     result.sort()
     return result

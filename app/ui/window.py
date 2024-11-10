@@ -7,6 +7,7 @@ from app import texts
 from app.evaluate import evaluate_markup
 from app.markup import ECGMarkup
 from app.ui.display import display_markup
+from app.ui.stats import calc_stats
 
 
 def get_format_callback(state):
@@ -43,10 +44,9 @@ def get_go_callback(state):
 
         dpg.set_value(STATUS_TAG, tr(texts.READY, state["locale"]))
         dpg.configure_item(STATUS_TAG, color=GREEN)
-
         state["markup"] = markup
-
         display_markup(state)
+        calc_stats(state, markup)
     return go_callback
 
 
