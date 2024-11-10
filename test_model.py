@@ -163,7 +163,7 @@ def test_model(file_list: list,
             
             def postprocess_ds(outputs):
                 # Бинаризуем выход
-                binary = (outputs > 0.5).astype(int)
+                binary = (np.array(outputs) > 0.5).astype(int)
                 
                 # Находим отрезки единиц
                 segments = []
@@ -189,7 +189,7 @@ def test_model(file_list: list,
                 merged_segments = [segments[0]]
                 for seg in segments[1:]:
                     if seg[0] - merged_segments[-1][1] <= 4 * 400:  # Если расстояние меньше или равно 4*400
-                        merged_segments[-1][1] = seg[1]  # Объединяем отрезки
+                        merged_segments[-1] = (merged_segments[-1][0], seg[1]) # Склеиваем
                     else:
                         merged_segments.append(seg)
                 
@@ -259,18 +259,18 @@ if __name__ == '__main__':
     files = ['data/ECoG_fully_marked_(4+2 files, 6 h each)/Ati4x3_9m_Xyl01(Pharm!)_6h.edf']
 
     config = {
-        'swd': {
-            'model_path': 'models/swd_new.pth',
-            'segment_length': 400,
-            'step': 100,
-            'partitions': 1
-        },
-        'is': {
-            'model_path': 'models/is_new.pth',
-            'segment_length': 400 * 5,
-            'step': 100 * 5,
-            'partitions': 1
-        },
+        # 'swd': {
+        #     'model_path': 'models/swd_new.pth',
+        #     'segment_length': 400,
+        #     'step': 100,
+        #     'partitions': 1
+        # },
+        # 'is': {
+        #     'model_path': 'models/is_new.pth',
+        #     'segment_length': 400 * 5,
+        #     'step': 100 * 5,
+        #     'partitions': 1
+        # },
         'ds': {
             'model_path': 'models/ds_new.pth',
             'segment_length': 400 * 10,
