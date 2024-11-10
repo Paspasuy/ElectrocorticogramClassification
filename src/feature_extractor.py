@@ -1,6 +1,15 @@
 import numpy as np
 import pywt
 from tqdm import tqdm
+from scipy.signal import spectrogram
+
+freq_bands = {
+    'delta': (0.5, 4),
+    'theta': (4, 8),
+    'alpha': (8, 12),
+    'beta': (12, 30),
+    'gamma': (30, 45)
+}
 
 class FeatureExtractor:
     def __init__(self):
@@ -19,11 +28,24 @@ class FeatureExtractor:
                 
                 mean = np.mean(part)
                 var = np.var(part)
-                mean = (part.max() - part.min()) / 2
-                crossings = np.sum((part[:-1] < mean) & (part[1:] >= mean)) + \
-                           np.sum((part[:-1] > mean) & (part[1:] <= mean))
+                threshold = (part.max() - part.min()) / 2
+                crossings = np.sum((part[:-1] < threshold) & (part[1:] >= threshold)) + \
+                           np.sum((part[:-1] > threshold) & (part[1:] <= threshold))
                 crossings_norm = crossings / len(part)
-                features.extend([mean, var, crossings_norm])
+                amplitude = part.max() - part.min()
+                features.extend([mean, var, crossings_norm, amplitude])
+                
+        # Global features
+        features.extend([np.var(segment), np.mean(segment), np.max(segment) - np.min(segment)])
+        
+        # Spectrogram features
+        f, t, Sxx = spectrogram(segment, fs=400)
+        for band, (low, high) in freq_bands.items():
+            band_idx = (f >= low) & (f < high)
+            band_power = Sxx[:, band_idx, :]
+            
+            features.extend([np.max(band_power), np.mean(np.abs(band_power)), np.var(band_power)])
+        
         return np.array(features)
         
     def transform(self, X: np.ndarray, partitions: int) -> np.ndarray:
@@ -47,7 +69,7 @@ class WaveletFeatureExtractor:
         self.scales = scales
         pass
         
-    def extract(self, segment: np.ndarray) -> np.ndarray:
+    def extract(self, segment: np.ndarray, partitions=None) -> np.ndarray:
         features = []
         segment_len = segment.shape[1]
         
