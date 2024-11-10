@@ -135,7 +135,7 @@ def test_model(file_list: list,
             def moving_average(data, window_size):
                 return np.convolve(data, np.ones(window_size)/window_size, mode='same')
             
-            def postprocess(outputs):
+            def postprocess_swd_is(outputs):
                 # Сначала применяем скользящее среднее
                 outputs = moving_average(outputs, window_size=3)
                 # Бинаризуем выход
@@ -161,7 +161,47 @@ def test_model(file_list: list,
 
                 return segments
             
-            all_outputs = postprocess(all_outputs)
+            def postprocess_ds(outputs):
+                # Бинаризуем выход
+                binary = (outputs > 0.5).astype(int)
+                
+                # Находим отрезки единиц
+                segments = []
+                start = None
+                for i in range(len(binary)):
+                    if binary[i] == 1 and start is None:
+                        start = i
+                    elif binary[i] == 0 and start is not None:
+                        segments.append((start, i-1))
+                        start = None
+                
+                if start is not None:
+                    segments.append((start, len(binary)-1))
+                
+                segments = [(seg[0] * config[label_type]['step'] + (config[label_type]['segment_length'] - config[label_type]['step']) // 2,
+                             (seg[1] + 1) * config[label_type]['step'] + (config[label_type]['segment_length'] - config[label_type]['step']) // 2) for seg in segments]
+                segments.sort()
+
+                if len(segments) == 0:
+                    return []
+                
+                # Склеиваем близкие отрезки
+                merged_segments = [segments[0]]
+                for seg in segments[1:]:
+                    if seg[0] - merged_segments[-1][1] <= 4 * 400:  # Если расстояние меньше или равно 4*400
+                        merged_segments[-1][1] = seg[1]  # Объединяем отрезки
+                    else:
+                        merged_segments.append(seg)
+                
+                # Фильтруем по длине
+                merged_segments = [seg for seg in merged_segments if bounders[label_type] < seg[1] - seg[0]]
+
+                return merged_segments
+
+            if label_type == 'swd' or label_type == 'is':
+                all_outputs = postprocess_swd_is(all_outputs)
+            elif label_type == 'ds':
+                all_outputs = postprocess_ds(all_outputs)
             
             # Сохранение результатов
             file_result[label_type] = all_outputs
