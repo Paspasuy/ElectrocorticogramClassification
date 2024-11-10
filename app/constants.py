@@ -68,7 +68,7 @@ OUT_FORMATS = ["EDF", "EDF in-place (Внимание! Эта опция пер�
 
 TYPES = ['is', 'ds', 'swd']
 
-FONT_PATH = "./app/font/OpenSans-Regular.ttf"
+FONT_PATH = os.path.join("app", "font", "OpenSans-Regular.ttf")
 # FONT_PATH = "/usr/share/fonts/TTF/OpenSans-Regular.ttf"
 DATA_DIR = os.getcwd()
 
