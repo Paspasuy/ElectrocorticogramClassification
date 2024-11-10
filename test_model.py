@@ -269,7 +269,7 @@ def test_model(file_list: list,
 if __name__ == '__main__':
     import argparse
     
-    files = ['data/ECoG_fully_marked_(4+2 files, 6 h each)/Ati4x3_9m_Xyl01(Pharm!)_6h.edf']
+    files = ['data/TEST1_30min.edf', 'data/TEST2_30min.edf']
 
     config = {
         'swd': {
