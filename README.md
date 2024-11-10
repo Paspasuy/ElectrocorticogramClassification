@@ -1,5 +1,7 @@
 # ElectrocorticogramClassification
 Решение команды ThreeNearestNeighbours (MIPT, MISIS)
+Архив находится во вкладке Releases.
+Альтернативная [ссылка](https://disk.yandex.ru/d/mb5GSfu1gSailA) на скачивание.
 
 ## Запуск на Windows
 Для запуска достаточно распаковать архив, перейти во вложенную папку и запустить RUN.BAT.
