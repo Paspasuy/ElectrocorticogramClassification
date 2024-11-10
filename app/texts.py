@@ -19,4 +19,4 @@ NOT_CHOSEN = ("Файл не выбран!", "File not chosen!")
 STATS = ("Статистики", "Stats")
 
 COUNT = ("Количество", "Count")
-AVG = ("Средняя продолжительность", "Average duration")
+AVG = ("Средняя длина", "Average duration")
