@@ -156,10 +156,23 @@ def test_model(file_list: list,
                 
                 segments = [(seg[0] * config[label_type]['step'] + (config[label_type]['segment_length'] - config[label_type]['step']) // 2,
                              (seg[1] + 1) * config[label_type]['step'] + (config[label_type]['segment_length'] - config[label_type]['step']) // 2) for seg in segments]
-                
-                segments = [seg for seg in segments if bounders[label_type] < seg[1] - seg[0]]
+                segments.sort()
 
-                return segments
+                if len(segments) == 0:
+                    return []
+                
+                # Склеиваем близкие отрезки
+                merged_segments = [segments[0]]
+                for seg in segments[1:]:
+                    if seg[0] - merged_segments[-1][1] <= 1 * 400:  # Если расстояние меньше или равно 4*400
+                        merged_segments[-1] = (merged_segments[-1][0], seg[1]) # Склеиваем
+                    else:
+                        merged_segments.append(seg)
+                
+                # Фильтруем по длине
+                merged_segments = [seg for seg in merged_segments if bounders[label_type] < seg[1] - seg[0]]
+
+                return merged_segments
             
             def postprocess_ds(outputs):
                 # Бинаризуем выход
