@@ -100,7 +100,7 @@ def test_model(file_list: list,
     """
     result = []
 
-    bounders = {'swd': (2 * 400, 20 * 400), 'is': (0, 50 * 400), 'ds': (0, 1000 * 400)}
+    bounders = {'swd': 2 * 400, 'is': 7.5 * 400, 'ds': 0}
     
     # Загрузка и извлечение сегментов
     for file_path in file_list:
@@ -154,7 +154,7 @@ def test_model(file_list: list,
                 segments = [(seg[0] * config[label_type]['step'] + (config[label_type]['segment_length'] - config[label_type]['step']) // 2,
                              (seg[1] + 1) * config[label_type]['step'] + (config[label_type]['segment_length'] - config[label_type]['step']) // 2) for seg in segments]
                 
-                segments = [seg for seg in segments if bounders[label_type][0] < seg[1] - seg[0] < bounders[label_type][1]]
+                segments = [seg for seg in segments if bounders[label_type] < seg[1] - seg[0]]
 
                 return segments
             
@@ -162,6 +162,48 @@ def test_model(file_list: list,
             
             # Сохранение результатов
             file_result[label_type] = all_outputs
+        
+        def classes_postprocess(file_result):
+            # Функция для проверки пересечения отрезков
+            def has_intersection(seg1, seg2):
+                return not (seg1[1] <= seg2[0] or seg1[0] >= seg2[1])
+            
+            # Проверяем пересечения для is
+            if 'is' in file_result:
+                is_segments = []
+                for is_seg in file_result['is']:
+                    has_overlap = False
+                    # Проверяем пересечения с swd и ds
+                    for other_type in ['swd', 'ds']:
+                        if other_type in file_result:
+                            for other_seg in file_result[other_type]:
+                                if has_intersection(is_seg, other_seg):
+                                    has_overlap = True
+                                    break
+                        if has_overlap:
+                            break
+                    if not has_overlap:
+                        is_segments.append(is_seg)
+                file_result['is'] = is_segments
+                
+            # Проверяем пересечения для ds
+            if 'ds' in file_result:
+                ds_segments = []
+                for ds_seg in file_result['ds']:
+                    has_overlap = False
+                    # Проверяем пересечения только с swd
+                    if 'swd' in file_result:
+                        for swd_seg in file_result['swd']:
+                            if has_intersection(ds_seg, swd_seg):
+                                has_overlap = True
+                                break
+                    if not has_overlap:
+                        ds_segments.append(ds_seg)
+                file_result['ds'] = ds_segments
+                
+            return file_result
+        
+        #file_result = classes_postprocess(file_result)
         
         result.append(TestResult(labels=file_result, file_path=file_path))
     
@@ -171,7 +213,7 @@ def test_model(file_list: list,
 if __name__ == '__main__':
     import argparse
     
-    files = ['data/ECoG_fully_marked_(4+2 files, 6 h each)/Ati4x3_12m_BL_6h_fully_marked.edf']
+    files = ['data/ECoG_fully_marked_(4+2 files, 6 h each)/Ati4x3_9m_Xyl01(Pharm!)_6h.edf']
 
     config = {
         'swd': {
