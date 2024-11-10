@@ -259,18 +259,18 @@ if __name__ == '__main__':
     files = ['data/ECoG_fully_marked_(4+2 files, 6 h each)/Ati4x3_9m_Xyl01(Pharm!)_6h.edf']
 
     config = {
-        # 'swd': {
-        #     'model_path': 'models/swd_new.pth',
-        #     'segment_length': 400,
-        #     'step': 100,
-        #     'partitions': 1
-        # },
-        # 'is': {
-        #     'model_path': 'models/is_new.pth',
-        #     'segment_length': 400 * 5,
-        #     'step': 100 * 5,
-        #     'partitions': 1
-        # },
+        'swd': {
+            'model_path': 'models/swd_new.pth',
+            'segment_length': 400,
+            'step': 100,
+            'partitions': 1
+        },
+        'is': {
+            'model_path': 'models/is_new.pth',
+            'segment_length': 400 * 5,
+            'step': 100 * 5,
+            'partitions': 1
+        },
         'ds': {
             'model_path': 'models/ds_new.pth',
             'segment_length': 400 * 10,
