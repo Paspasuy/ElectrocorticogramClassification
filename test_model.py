@@ -103,7 +103,7 @@ def test_model(file_list: list,
     """
     result = []
 
-    bounders = {'swd': 2 * 400, 'is': 7.5 * 400, 'ds': 0}
+    bounders = {'swd': 2 * 400, 'is': 7.5 * 400, 'ds': 5 * 400}
     
     # Загрузка и извлечение сегментов
     for file_path in file_list:
@@ -206,7 +206,7 @@ def test_model(file_list: list,
                 
             return file_result
         
-        #file_result = classes_postprocess(file_result)
+        file_result = classes_postprocess(file_result)
         
         result.append(TestResult(labels=file_result, file_path=file_path))
     
