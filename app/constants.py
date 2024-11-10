@@ -2,7 +2,7 @@ import os
 
 from app import texts
 
-APP_TITLE = "Классификатор ЭКоГ"
+APP_TITLE = "ECoG Classifier"
 
 items = []
 

@@ -13,7 +13,7 @@ if __name__ == "__main__":
     dpg.create_context()
     dpg.setup_dearpygui()
 
-    scale = 2
+    scale = 1
     dpg.create_viewport(title=APP_TITLE, width=VIEWPORT_WIDTH * scale, height=VIEWPORT_HEIGHT * scale)
 
     state = {
