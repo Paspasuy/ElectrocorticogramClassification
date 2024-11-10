@@ -12,21 +12,8 @@ import numpy as np
 
 def get_file_picker_callback(state):
     def file_picker_callback(sender, app_data, user_data):
-        filename = app_data["file_path_name"]
-        markup = []
-        if filename.endswith('.edf'):
-            markup.append(ECGMarkup(filename))
-        else:
-            for name in os.listdir(app_data["file_path_name"]):
-                if name.endswith('.edf'):
-                    markup.append(ECGMarkup(os.path.join(filename, name)))
-
-        for mp in markup:
-            mp.load_data_and_markup()
-
-        state["markup"] = markup
-
-        display_markup(state)
+        state["filename"] = app_data["file_path_name"]
+        dpg.set_value(FILENAME_TAG, os.path.basename(state["filename"]))
 
     return file_picker_callback
 

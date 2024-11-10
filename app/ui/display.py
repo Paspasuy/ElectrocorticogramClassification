@@ -17,7 +17,7 @@ def jump_to_markup_segment(state, index):
     tags = [FRL_TAG, FRR_TAG, OCR_TAG]
     shifts = [0.001, 0, -0.001]
 
-    segment = markup.markup[index]
+    segment = markup.pretty_markup[index]
     sl, sr = segment[0][0] / 400, segment[1][0] / 400
 
     true_sr = sr
@@ -58,19 +58,22 @@ def display_markup(state):
     tags = [FRL_TAG, FRR_TAG, OCR_TAG]
     shifts = [-0.001, 0, 0.001]
 
-    if len(markup.markup) > 0:
+    if len(markup.pretty_markup) > 0:
         jump_to_markup_segment(state, 0)
     else:
         for i in range(3):
             dpg.set_value(tags[i], [np.arange(len(data[i])) / 400, data[i] + shifts[i]])
+
+    if dpg.does_alias_exist(SEGMENT_TABLE_TAG):
+        dpg.delete_item(SEGMENT_TABLE_TAG)
 
     with dpg.table(parent=DISPLAY_WINDOW_TAG, tag=SEGMENT_TABLE_TAG, header_row=True) as selectablerows:
         dpg.add_table_column(label=tr(texts.BEGIN, state["locale"]))
         dpg.add_table_column(label=tr(texts.END, state["locale"]))
         dpg.add_table_column(label=tr(texts.TYPE, state["locale"]))
 
-        for i in range(len(markup.markup)):
-            segment = markup.markup[i]
+        for i in range(len(markup.pretty_markup)):
+            segment = markup.pretty_markup[i]
             sl, sr = segment[0][0] / 400, segment[1][0] / 400
             with dpg.table_row():
                 dpg.add_button(label=f"{sl}", width=-1, callback=clb_selectable,

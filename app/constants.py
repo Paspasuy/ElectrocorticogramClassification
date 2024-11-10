@@ -1,6 +1,8 @@
 import os
 
-APP_TITLE = "Классификатор ЭКоГ"
+from app import texts
+
+APP_TITLE = "ECoG Classifier"
 
 items = []
 
@@ -43,11 +45,28 @@ OCR_TAG = "OCR_TAG"
 
 SEGMENT_TABLE_TAG = "SEGMENT_TABLE_TAG"
 
+STATUS_POS = (30, VIEWPORT_HEIGHT - 30)
+STATUS_TAG = "STATUS_TAG"
+
+OUTPUT_DIR = "OUTPUT_DIR"
+COLUMNS = [texts.BEGIN[1], texts.END[1], texts.TYPE[1]]
+
 TEXT_POS = (10, 30)
 TEXT_WRAP = 400
-
+FILENAME_TAG = "FILENAME_TAG"
 
 PREVIEW_WINDOW_TAG = "preview_window_tag"
+
+STATS_WINDOW_TAG = "STATS_WINDOW"
+PIE_RADIUS = 100
+STATS_COUNT_TAG = "STATS_COUNT"
+STATS_AVG_TAG = "STATS_AVG"
+STATS_TAG = "STATS_TAG"
+DISPLAY_PLOT_SIDE = 200
+
+OUT_FORMATS = ["EDF", "EDF in-place (Внимание! Эта опция перезапишет исходный файл!)", "CSV"]
+
+TYPES = ['is', 'ds', 'swd']
 
 FONT_PATH = "./app/font/OpenSans-Regular.ttf"
 # FONT_PATH = "/usr/share/fonts/TTF/OpenSans-Regular.ttf"
