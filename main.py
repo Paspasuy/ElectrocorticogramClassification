@@ -3,10 +3,7 @@
 import dearpygui.dearpygui as dpg
 
 from app.constants import *
-from app import texts
 from app.ui import common
-
-# Hint: remember you can use dpg.configure_item
 
 
 if __name__ == "__main__":
